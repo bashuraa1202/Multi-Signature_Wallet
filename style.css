@@ -1,0 +1,23 @@
+:root {
+	/* colours */
+	--clr-white: hsl(220, 37%, 100%);
+	--clr-surface: hsl(220, 37%, 97%);
+	--clr-text: hsl(244, 44%, 14%);
+
+	/* Colours that ellicit wealth, growth, happiness- we can change these */
+	--clr-green: hsl(115, 67%, 50%);
+	--clr-yellow: hsl(60, 86%, 50%);
+	--clr-blue: hsl(240, 88%, 67%);
+
+	/* font families */
+	--ff-base: 'Source Sans Pro', 'Arial';
+	
+}
+
+body {
+ 	font-family: var(--ff-base);
+	background-color: var(--clr-surface);
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
