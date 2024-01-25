@@ -148,6 +148,28 @@ async function getUsers() {
 	return Array.from(users);
 }
 
+async function add_Transaction(address, amount){
+	await Multisig.methods.submitTransaction(address, amount.toWei(), 0);
+}
+
+//Returns a string in HTML of the transaction table data
+async function fillTable() {
+	let table = '';
+		
+		//get some transactions
+		const txCount = await Multisig.transactionCount().call({from: web3.eth.defaultAccount})
+		
+		for (var i = 0; i < txCount; i++) {
+			const tx = await Multisig.transactions(i);
+			table = table + '<tr><td>'+ i +'</td><td>'
+			+ tx[0] +'</td><td>'
+			+ tx[1] +'</td><td>'
+			+ (tx[3] == true? "Done":"Pending") 
+			+'</td><td><button class="btn approve-btn">Approve</button></td></tr>';	
+		}
+	return table;
+}
+
 
 // ====================================
 // 				Testing					
@@ -213,6 +235,29 @@ web3.eth.getAccounts().then((response)=> {
 		time = timeConverter(response)
 		$("#last_active").html(time)
 	});
+});
+
+// This displays the form for sending or receving ETH. Requires full version of jQuery to use slideDown() function
+$(".send-recieve").click(function (e){
+	$("#propose_form").slideUp(200);
+	if ($(e.target).is(".propose-btn")) $("#send_rec_label").html("To:");
+	else if  ($(e.target).is(".sendeth-btn")) $("#send_rec_label").html("From:")
+	$("#propose_form").slideDown(500);
+});
+
+
+// Propose a transaction
+$("#propose_form > input[submit]").click(function (e){
+	e.preventDefault();
+	add_Transaction($("#address").val(), $("#amount").val()).then((response)=>{
+		window.location.reload(true); // refreshes the page after addTransaction returns and the promise is unwrapped
+	});
+});
+
+
+//This code fills the transaction table with information from the blockchain
+fillTable().then((response)=>{
+	$("#transaction_table").html(response);
 });
 
 // This is a log function, provided if you want to display things to the page instead of the JavaScript console
