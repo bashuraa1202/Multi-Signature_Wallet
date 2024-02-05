@@ -1,283 +1,135 @@
-// =============================================================================
-//                                  Config
-// =============================================================================
+console.log('Script loaded and executed!');
+document.addEventListener("DOMContentLoaded", async function () {
+    const navLinks = document.querySelector('.nav-links');
+    const hamburgerMenu = document.querySelector('.hamburger-menu');
+    const createTransactionButton = document.getElementById('createTransactionButton');
+    const submitTransactionButton = document.getElementById('submitTransaction');
+    const recipientAddressInput = document.getElementById('recipientAddress');
+    const ethAmountInput = document.getElementById('ethAmount');
+    const numPeopleSelect = document.getElementById('numPeople');
 
-let web3 = new Web3(Web3.givenProvider || "ws://localhost:8545");
+    let provider;
+    let publicAddress;
 
-// Constant we use later
-var GENESIS = '0x0000000000000000000000000000000000000000000000000000000000000000';
+    // Toggle mobile menu on hamburger click
+    hamburgerMenu.addEventListener('click', function () {
+        navLinks.classList.toggle('show');
+    });
 
-// This is the ABI for your contract (get it from Remix, in the 'Compile' tab)
-// ============================================================
-// FIXME: fill this in with your contract's ABI //Be sure to only have one array, not two
-var abi = [
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "_creditor",
-				"type": "address"
-			},
-			{
-				"internalType": "int32",
-				"name": "_amount",
-				"type": "int32"
-			}
-		],
-		"name": "add_IOU",
-		"outputs": [
-			{
-				"internalType": "bool",
-				"name": "res",
-				"type": "bool"
-			}
-		],
-		"stateMutability": "nonpayable",
-		"type": "function"
-	},
-	{
-		"inputs": [],
-		"name": "getLedger",
-		"outputs": [
-			{
-				"components": [
-					{
-						"components": [
-							{
-								"internalType": "address",
-								"name": "creditor",
-								"type": "address"
-							},
-							{
-								"internalType": "int32",
-								"name": "amount",
-								"type": "int32"
-							},
-							{
-								"internalType": "uint256",
-								"name": "creditor_id",
-								"type": "uint256"
-							},
-							{
-								"internalType": "bool",
-								"name": "_valid",
-								"type": "bool"
-							}
-						],
-						"internalType": "struct SplitWise.IOU[]",
-						"name": "IOUs",
-						"type": "tuple[]"
-					},
-					{
-						"internalType": "address",
-						"name": "debtor",
-						"type": "address"
-					},
-					{
-						"internalType": "uint256",
-						"name": "id",
-						"type": "uint256"
-					},
-					{
-						"internalType": "bool",
-						"name": "_valid",
-						"type": "bool"
-					}
-				],
-				"internalType": "struct SplitWise.Debtor[]",
-				"name": "_ledgerArr",
-				"type": "tuple[]"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	},
-	{
-		"inputs": [
-			{
-				"internalType": "address",
-				"name": "debtor",
-				"type": "address"
-			},
-			{
-				"internalType": "address",
-				"name": "creditor",
-				"type": "address"
-			}
-		],
-		"name": "lookup",
-		"outputs": [
-			{
-				"internalType": "int32",
-				"name": "ret",
-				"type": "int32"
-			}
-		],
-		"stateMutability": "view",
-		"type": "function"
-	}
-]; 
+    // Hide mobile menu when a link is clicked
+    navLinks.addEventListener('click', function () {
+        navLinks.classList.remove('show');
+    });
 
-// ============================================================
-abiDecoder.addABI(abi);
-// call abiDecoder.decodeMethod to use this - see 'getAllFunctionCalls' for more
+    // Check if MetaMask is installed and connected
+    if (window.ethereum) {
+        provider = new ethers.providers.Web3Provider(window.ethereum);
 
-var contractAddress = '0xA691a0607fc6f25C589F5629C006A8618ADAF8E5'; // FIXME: fill this in with your contract's address/hash
-var Multisig = new web3.eth.Contract(abi, contractAddress);
+        try {
+            // Request account access
+            await window.ethereum.request({
+                method: 'eth_requestAccounts'
+            });
+        } catch (error) {
+            console.error('User denied account access:', error);
+        }
+    } else {
+        console.error('MetaMask is not installed.');
+        return;
+    }
 
-// =============================================================================
-//                            Functions To Implement
-// =============================================================================
+    const publicAddressElement = document.getElementById('publicAddress');
+    const currentBalanceElement = document.getElementById('currentBalance');
+    const transactionsElement = document.getElementById('transactions');
+    const loadMoreButton = document.getElementById('loadMore');
 
-// Helper functions
-//  TODO: Add any helper functions here! 
-async function getLedger() { // https://stackoverflow.com/questions/71367683/how-to-get-transaction-receipt-event-logs
-	return Multisig.methods.getLedger().call({from: web3.eth.defaultAccount});
-}
+    let currentPage = 1;
+    const transactionsPerPage = 5;
 
-// TODO: Return a list of all users in the system
-async function getUsers() {
-	let retLedger = await getLedger();
-	var users = new Set();
-	for (var i = 0; i < retLedger.length; i++){
-		users.add(retLedger[i].debtor);
-		for (var j = 0; j < retLedger[i].IOUs.length; j++){ 
-			users.add(retLedger[i]["IOUs"][j]["creditor"]);
-		}
-	}
-	return Array.from(users);
-}
+    // Function to get the current balance of the Ethereum address
+    async function getCurrentBalance() {
+        try {
+            const accounts = await provider.listAccounts();
+            if (accounts.length > 0) {
+                publicAddress = accounts[0];
+                publicAddressElement.textContent = publicAddress;
 
+                const balance = await provider.getBalance(publicAddress);
+                const formattedBalance = ethers.utils.formatEther(balance);
+                currentBalanceElement.textContent = `${formattedBalance} ETH`;
 
-// ====================================
-// 				Testing					
-// ====================================
-// Test your code during dev
+                // Load initial transactions
+                loadTransactions();
+            } else {
+                console.error('No accounts found.');
+            }
+        } catch (error) {
+            console.error('Error getting current balance:', error);
+        }
+    }
 
-// =============================================================================
-//                              Provided Functions
-// =============================================================================
-// Reading and understanding these should help you implement the above
+    // Function to load transactions for the given address and page
+    async function loadTransactions() {
+        try {
+            const accounts = await provider.listAccounts();
+            if (accounts.length > 0) {
+                const publicAddress = accounts[0];
+                const history = await provider.getHistory(publicAddress, {
+                    page: currentPage,
+                    offset: (currentPage - 1) * transactionsPerPage,
+                    limit: transactionsPerPage,
+                });
 
-// This searches the block history for all calls to 'functionName' (string) on the 'addressOfContract' (string) contract
-// It returns an array of objects, one for each call, containing the sender ('from'), arguments ('args'), and the timestamp ('t')
-async function getAllFunctionCalls(addressOfContract, functionName) {
-	var curBlock = await web3.eth.getBlockNumber();
-	var function_calls = [];
+                history.forEach(transaction => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = `Transaction: ${transaction.hash}`;
+                    transactionsElement.appendChild(listItem);
+                });
 
-	while (curBlock !== GENESIS) {
-	  var b = await web3.eth.getBlock(curBlock, true);
-	  var txns = b.transactions;
-	  for (var j = 0; j < txns.length; j++) {
-	  	var txn = txns[j];
+                // If the number of transactions loaded is less than the requested per page,
+                // it means there are no more transactions to load, so disable the button
+                if (history.length < transactionsPerPage) {
+                    loadMoreButton.disabled = true;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading transactions:', error);
+        }
+    }
 
-	  	// check that destination of txn is our contract
-			if(txn.to == null){continue;}
-	  	if (txn.to.toLowerCase() === addressOfContract.toLowerCase()) {
-	  		var func_call = abiDecoder.decodeMethod(txn.input);
+    // Event listener for the "Load More Transactions" button
+    if (loadMoreButton) {
+        loadMoreButton.addEventListener('click', () => {
+            currentPage++;
+            loadTransactions();
+        });
+    }
 
-				// check that the function getting called in this txn is 'functionName'
-				if (func_call && func_call.name === functionName) {
-					var time = await web3.eth.getBlock(curBlock);
-	  			var args = func_call.params.map(function (x) {return x.value});
-	  			function_calls.push({
-	  				from: txn.from.toLowerCase(),
-	  				args: args,
-						t: time.timestamp
-	  			})
-	  		}
-	  	}
-	  }
-	  curBlock = b.parentHash;
-	}
-	return function_calls;
-}
+    // Update current address and available ETH display
+    getCurrentBalance();
 
+    // Check if the buttons exist before adding event listeners
+    if (createTransactionButton) {
+        createTransactionButton.addEventListener('click', () => {
+            console.log('Create Transaction button clicked!');
+            window.location.href = './create-transaction.html';
+        });
+    }
 
-// =============================================================================
-//                                      UI
-// =============================================================================
+    if (submitTransactionButton) {
+        submitTransactionButton.addEventListener('click', async () => {
+            const recipientAddress = recipientAddressInput.value;
+            const ethAmount = ethAmountInput.value;
+            const numPeople = numPeopleSelect.value;
 
-// This sets the default account on load and displays the total owed to that
-// account.
+            const balance = await provider.getBalance(publicAddress);
+            if (parseFloat(ethAmount) > parseFloat(ethers.utils.formatEther(balance))) {
+                alert("Insufficient funds. Please enter a valid ETH amount.");
+                return;
+            }
 
-//FIX ME: Left as an example on how to get account information
-web3.eth.getAccounts().then((response)=> {
-	web3.eth.defaultAccount = response[0];
-
-	getTotalOwed(web3.eth.defaultAccount).then((response)=>{
-		$("#total_owed").html("$"+response);
-	});
-
-	getLastActive(web3.eth.defaultAccount).then((response)=>{
-		time = timeConverter(response)
-		$("#last_active").html(time)
-	});
+            alert(`Transaction Details:\nRecipient Address: ${recipientAddress}\nETH Amount: ${ethAmount}\nNumber of People: ${numPeople}`);
+        });
+    }
+    // getCurrentBalance();
 });
-
-// This is a log function, provided if you want to display things to the page instead of the JavaScript console
-// Pass in a discription of what you're printing, and then the object to print
-function log(description, obj) {
-	$("#log").html($("#log").html() + description + ": " + JSON.stringify(obj, null, 2) + "\n\n");
-}
-
-
-// =============================================================================
-//                                      TESTING
-// =============================================================================
-
-// This section contains a sanity check test that you can use to ensure your code
-// works. We will be testing your code this way, so make sure you at least pass
-// the given test. You are encouraged to write more tests!
-
-// Remember: the tests will assume that each of the four client functions are
-// async functions and thus will return a promise. Make sure you understand what this means.
-
-//FIX ME: Will need to update to correspond to our own functions
-function check(name, condition) {
-	if (condition) {
-		console.log(name + ": SUCCESS");
-		return 3;
-	} else {
-		console.log(name + ": FAILED");
-		return 0;
-	}
-}
-
-async function sanityCheck() {
-	console.log ("\nTEST", "Simplest possible test: only runs one add_IOU; uses all client functions: lookup, getTotalOwed, getUsers, getLastActive");
-
-	var score = 0;
-
-	var accounts = await web3.eth.getAccounts();
-	web3.eth.defaultAccount = accounts[0];
-
-	var users = await getUsers();
-	score += check("getUsers() initially empty", users.length === 0);
-
-	var owed = await getTotalOwed(accounts[0]);
-	score += check("getTotalOwed(0) initially empty", owed === 0);
-
-	var lookup_0_1 = await BlockchainSplitwise.methods.lookup(accounts[0], accounts[1]).call({from:web3.eth.defaultAccount});
-	score += check("lookup(0,1) initially 0", parseInt(lookup_0_1, 10) === 0);
-
-	var response = await add_IOU(accounts[1], "10");
-
-	users = await getUsers();
-	score += check("getUsers() now length 2", users.length === 2);
-
-	owed = await getTotalOwed(accounts[0]);
-	score += check("getTotalOwed(0) now 10", owed === 10);
-
-	lookup_0_1 = await BlockchainSplitwise.methods.lookup(accounts[0], accounts[1]).call({from:web3.eth.defaultAccount});
-	score += check("lookup(0,1) now 10", parseInt(lookup_0_1, 10) === 10);
-
-	var timeLastActive = await getLastActive(accounts[0]);
-	var timeNow = Date.now()/1000;
-	var difference = timeNow - timeLastActive;
-	score += check("getLastActive(0) works", difference <= 60 && difference >= -3); // -3 to 60 seconds
-
-	console.log("Final Score: " + score +"/21");
-}
-
-//sanityCheck() //Uncomment this line to run the sanity check when you first open index.html
