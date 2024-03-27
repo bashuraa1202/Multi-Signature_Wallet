@@ -1,0 +1,202 @@
+body {
+    margin: 0;
+    background-color: #f8f9fa;
+}
+
+.homepage {
+    padding: 10px;
+}
+
+.wallet-info {
+    text-align: center;
+    color: #333; 
+}
+
+.big-font {
+    font-size: 28px;
+    font-weight: bold;
+}
+
+a {
+    color: white;
+    text-decoration: none; 
+}
+
+.navbar {
+    height: 60px;
+    background: linear-gradient(to right, #000000, #383939); 
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.navbar img {
+    max-height: 15%; 
+    max-width: 15%; 
+}
+
+.logo {
+    max-height: 100%; 
+}
+
+.nav-links {
+    display: flex;
+}
+
+.nav-link {
+    color: white;
+    margin-right: 20px;
+    transition: color 0.3s ease; 
+}
+
+.nav-link:hover {
+    color: #ecf0f1; 
+}
+
+.hamburger-menu {
+    display: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.wallet-info #currentBalance {
+    font-size: 36px; 
+    font-weight: bold; 
+    margin-bottom: 20px;
+    margin-top: 0px;
+}
+
+.wallet-info #publicAddress {
+    font-size: 18px; 
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.wallet-info button {
+    padding: 10px 20px; 
+    font-size: 16px; 
+    background-color: black; 
+    color: white; 
+    border: none; 
+    cursor: pointer; 
+    transition: background-color 0.3s ease; 
+}
+
+.wallet-info button:hover {
+    background-color: #7d8083; 
+}
+
+#submitTransaction{
+    padding: 10px 20px; 
+    font-size: 16px; 
+    background-color: black; 
+    color: white; 
+    border: none; 
+    cursor: pointer; 
+    transition: background-color 0.3s ease; 
+}
+#submitTransaction:hover{
+    background-color: #7d8083; 
+}
+
+.create-transaction {
+    text-align: center;
+}
+
+.transaction-form {
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    margin-bottom: 5px;
+}
+
+.transaction, .transaction * {
+    word-wrap: break-word; 
+    overflow-wrap: break-word;
+}
+
+.transaction {
+    border: 1px solid #ddd;
+    margin-bottom: 8px;
+    padding: 10px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.transaction .details {
+    display: none;
+    padding-top: 10px;
+}
+
+.transaction.expanded {
+    background-color: #eef6fc;
+}
+
+.transaction.expanded .details {
+    display: block;
+}
+
+.transaction p {
+    margin: 5px 0;
+}
+
+.participant-details {
+    margin-left: 20px;
+    list-style-type: none; 
+}
+
+.participant-details li {
+    padding: 5px 0; 
+}
+
+.hash-xi-details {
+    font-style: italic;
+}
+
+.transaction-status h1 {
+    text-align: center;
+    color: #333;
+}
+
+@media only screen and (max-width: 768px) {
+    .nav-links {
+        display: none;
+        flex-direction: column;
+        position: fixed;
+        top: 60px; 
+        left: 0;
+        right: 0;
+        background-color: #383939; 
+        z-index: 1;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2); 
+    }
+
+    .nav-links.show {
+        display: flex;
+    }
+
+    .nav-link {
+        margin: 10px 0;
+    }
+
+    .hamburger-menu {
+        display: block;
+    }
+
+    .transaction-form {
+        max-width: 90%; 
+    }
+}

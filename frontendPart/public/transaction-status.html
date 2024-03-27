@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.ethers.io/lib/ethers-5.0.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/elliptic/6.5.5/elliptic.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bn.js@5.2.0"></script>
+
+    <title>Transaction Statuses</title>
+</head>
+<body>
+    <!-- Fixed Navbar -->
+    <nav class="navbar">
+        <div class="logo"><img src="./images/eth_logo.png" alt="Ethereum Logo"></div>
+        <div class="nav-links">
+            <a href="index.html" class="nav-link">Home</a>
+            <a href="#" class="nav-link">Contact Us</a>
+            <a href="transaction-status.html" class="nav-link active">Transaction Status</a>
+        </div>
+        <div class="hamburger-menu">&#9776;</div>
+    </nav>
+
+    <!-- Transaction Status Section -->
+    <section class="transaction-status">
+        <h1>Transaction Statuses</h1>
+        <div id="transactionsContainer">
+            <!-- Transaction statuses will be dynamically added here -->
+        </div>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>
