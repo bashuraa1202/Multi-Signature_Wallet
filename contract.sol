@@ -1,11 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 
 pragma solidity >=0.8.2 <0.9.0; 
-
-/**
- * @title Storage
- * @dev Store & retrieve value in a variable
- * @custom:dev-run-script ./scripts/deploy_with_ethers.ts
+/*
  
  recieve pk as points
  */
@@ -169,12 +165,6 @@ library CommonStructs {
     uint256 x;
     uint256 y;
   }
-
-  struct Points {
-    Point[] X;
-    Point[] PK;
-  }
-
 }
 
 contract MultiSig {
@@ -192,20 +182,13 @@ contract MultiSig {
 	
 	
 	}
-	/*
-	from is a schorr multisig instance- sum(H(
-	amount in wei
 	
-	x, z multisigs from server
-	*/
-	function pay (address from, uint amount, address to, uint x, uint z, uint m) public{
-
-	//pk and xbar are expected to be points
+	function pay (address from, uint amount, address to, uint256 pk, uint256 x, uint256 z, uint256 m) public{
+ 	
+	//pk and xbar are expected to be points. A point is a struct with two uint256 types, see what I'm getting from server
 	//m is expected to be bytes. Check to see what I'm getting from server. See if I can change it to bytes
-        bytes32 m = sha256(abi.encodePacked(to, counter, amount));
             if (verify(z, pk, x, m)){
                 payable(to).transfer(amount);
-                //address = keccak(pkbar)
                 accounts[from] -= amount;
                 accounts[to] += amount;
             }
@@ -235,6 +218,5 @@ contract MultiSig {
   return false; 
 }
 	
-
     
 }
